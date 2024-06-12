@@ -1522,7 +1522,8 @@ static void ValidateTests(IOR_param_t * test, MPI_Comm com)
             && (strcasecmp(test->api, "DFS") != 0)
             && (strcasecmp(test->api, "Gfarm") != 0)
             && (strcasecmp(test->api, "RADOS") != 0)
-            && (strcasecmp(test->api, "CEPHFS") != 0)) && test->fsync)
+            && (strcasecmp(test->api, "CEPHFS") != 0)
+            && (strcasecmp(test->api, "CUBEFS") != 0)) && test->fsync)
                 WARN_RESET("fsync() not supported in selected backend",
                            test, &defaults, fsync);
         /* parameter consistency */

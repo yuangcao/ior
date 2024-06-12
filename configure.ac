@@ -315,6 +315,20 @@ AM_COND_IF([USE_CEPHFS_AIORI],[
         AC_DEFINE([USE_CEPHFS_AIORI], [], [Build CEPHFS backend AIORI])
 ])
 
+# CUBEFS support
+AC_ARG_WITH([cubefs],
+        [AS_HELP_STRING([--with-cubefs],
+           [support IO with libcubefs backend @<:@default=no@:>@])],
+        [],
+        [with_cubefs=no])
+#AS_IF([test "x$with_cephfs" != xno], [
+#       CPPFLAGS="$CPPFLAGS -I/home/kvgroup/cya/cubefs/cubefs-oppo/build/bin" # cya
+#])
+AM_CONDITIONAL([USE_CUBEFS_AIORI], [test x$with_cubefs = xyes])
+AM_COND_IF([USE_CUBEFS_AIORI],[
+        AC_DEFINE([USE_CUBEFS_AIORI], [], [Build CUBEFS backend AIORI])
+])
+
 # DAOS-FS Backend (DFS)
 AC_ARG_WITH([daos],
     [AS_HELP_STRING([--with-daos],
