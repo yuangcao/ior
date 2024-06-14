@@ -57,6 +57,7 @@ static void CUBEFS_Sync(aiori_mod_opt_t *);
 static option_help * CUBEFS_options();
 
 static aiori_xfer_hint_t * hints = NULL;
+static int64_t cubefs_client_id;
 
 /************************** D E C L A R A T I O N S ***************************/
 ior_aiori_t cubefs_aiori = {
@@ -102,81 +103,155 @@ static option_help * CUBEFS_options(){
 static void CUBEFS_Init()
 {
         printf("CUBEFS_Init\n");
+        cubefs_client_id = cfs_new_client();
+        int statusVal = cfs_set_client(cubefs_client_id, "masterAddr", "192.168.1.103:16010,192.168.1.117:16010,192.168.1.141:16010");
+        if (statusVal != 0) { printf("Error 1\n"); CUBEFS_ERR("Unable to set masterAddr", statusVal); }
+        statusVal = cfs_set_client(cubefs_client_id, "volName", "cyasdktest");
+        if (statusVal != 0) { printf("Error 2\n"); CUBEFS_ERR("Unable to set volName", statusVal); }
+        statusVal = cfs_set_client(cubefs_client_id, "logLevel", "info");
+        if (statusVal != 0) { printf("Error 3\n"); CUBEFS_ERR("Unable to set logLevel", statusVal); }
+        statusVal = cfs_set_client(cubefs_client_id, "logDir", "/home/kvgroup/cya/cubefs-oppo/data-dist/client-cyasdktest/log");
+        if (statusVal != 0) { printf("Error 4\n"); CUBEFS_ERR("Unable to set logDir", statusVal); }
+        statusVal = cfs_set_client(cubefs_client_id, "enableAudit", "true");
+        if (statusVal != 0) { printf("Error 5\n"); CUBEFS_ERR("Unable to enableAudit", statusVal); }
+        statusVal = cfs_set_client(cubefs_client_id, "accessKey", "TvrE6nMCYxuvp9AQ");
+        if (statusVal != 0) { printf("Error 6\n"); CUBEFS_ERR("Unable to set accessKey", statusVal); }
+        statusVal = cfs_set_client(cubefs_client_id, "secretKey", "vnA4uz8MMQQW5gwBC3ES5zmfKeusHfTk");
+        if (statusVal != 0) { printf("Error 7\n"); CUBEFS_ERR("Unable to set secretKey", statusVal); }
+        statusVal = cfs_start_client(cubefs_client_id);
+        if (statusVal != 0) { printf("Error 8\n"); CUBEFS_ERR("Unable to start client", statusVal); }
+        
+        // statusVal = cfs_open(cubefs_client_id, "/test.txt.6", O_CREAT | O_WRONLY, 0664);
+        // if (statusVal < 0) { printf("Error 9, statusVal = %d\n", statusVal); CUBEFS_ERR("Unable to open file", statusVal); }
+
         return;
 }
 
 static void CUBEFS_Final()
 {
         printf("CUBEFS_Final\n");
+        cfs_close_client(cubefs_client_id);
         return;
 }
 
 static aiori_fd_t *CUBEFS_Create(char *path, int flags, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Create: %s\n", path);
         return CUBEFS_Open(path, flags | IOR_CREAT, options);
 }
 
 static aiori_fd_t *CUBEFS_Open(char *path, int flags, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Open: path = %s\n", path);
+
         int* fd;
         fd = (int *)malloc(sizeof(int));
-        *fd = 0;
+
+        mode_t mode = 0664;
+        int cubefs_flags = (int) 0;
+
+        /* set IOR file flags to CubeFS flags (same as POSIX flags) */
+        /* -- file open flags -- */
+        if (flags & IOR_RDONLY) {
+                cubefs_flags |= O_RDONLY;
+        }
+        if (flags & IOR_WRONLY) {
+                cubefs_flags |= O_WRONLY;
+        }
+        if (flags & IOR_RDWR) {
+                cubefs_flags |= O_RDWR;
+        }
+        if (flags & IOR_APPEND) {
+                cubefs_flags |= O_APPEND;
+        }
+        if (flags & IOR_CREAT) {
+                cubefs_flags |= O_CREAT;
+        }
+        if (flags & IOR_EXCL) {
+                cubefs_flags |= O_EXCL;
+        }
+        if (flags & IOR_TRUNC) {
+                cubefs_flags |= O_TRUNC;
+        }
+        // if (flags & IOR_DIRECT) {
+        //         cubefs_flags |= O_DIRECT;
+        // }
+        *fd = cfs_open(cubefs_client_id, path, cubefs_flags, mode);
+        if (*fd < 0) {
+                CUBEFS_ERR("cubefs_open failed", *fd);
+        }
+
         return (void *) fd;
 }
 
 static IOR_offset_t CUBEFS_Xfer(int access, aiori_fd_t *file, IOR_size_t *buffer,
                            IOR_offset_t length, IOR_offset_t offset, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Xfer\n");
         return 0;
 }
 
 static void CUBEFS_Fsync(aiori_fd_t *file, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Fsync\n");
         return;
 }
 
 static void CUBEFS_Close(aiori_fd_t *file, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Close\n");
+        int fd = *(int *) file;
+        cfs_close(cubefs_client_id, fd);
+        free(file);
         return;
 }
 
 static void CUBEFS_Delete(char *path, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Delete: %s\n", path);
+        int statusVal = cfs_unlink(cubefs_client_id, path);
+        if (statusVal != 0) { printf("Error in CUBEFS_Delete\n"); CUBEFS_ERR("Error occured when deleting a file", statusVal); }
         return;
 }
 
 static IOR_offset_t CUBEFS_GetFileSize(aiori_mod_opt_t *options, char *path)
 {
+        printf("CUBEFS_GetFileSize: %s\n", path);
         return 0;
 }
 
 static int CUBEFS_StatFS(const char *path, ior_aiori_statfs_t *stat_buf, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_StatFS: %s\n", path);
         return 0;
 }
 
 static int CUBEFS_MkDir(const char *path, mode_t mode, aiori_mod_opt_t *options)
 {
-        return 0;
+        printf("CUBEFS_MkDir: %s\n", path);
+        return cfs_mkdirs(cubefs_client_id, path, mode); // not sure about the return value. In mdtest.c, -1 is the error return value.
 }
 
 static int CUBEFS_RmDir(const char *path, aiori_mod_opt_t *options)
 {
-        return 0;
+        printf("CUBEFS_RmDir: %s\n", path);
+        return cfs_rmdir(cubefs_client_id, path); // not sure about the return value. In mdtest.c, -1 is the error return value.
 }
 
 static int CUBEFS_Access(const char *path, int mode, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Access: %s\n", path);
         return 0;
 }
 
 static int CUBEFS_Stat(const char *path, struct stat *buf, aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Stat: %s\n", path);
         return 0;
 }
 
 static void CUBEFS_Sync(aiori_mod_opt_t *options)
 {
+        printf("CUBEFS_Sync\n");
         return;
-
 }
