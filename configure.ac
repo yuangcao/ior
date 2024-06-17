@@ -322,7 +322,7 @@ AC_ARG_WITH([cubefs],
         [],
         [with_cubefs=no])
 AS_IF([test "x$with_cubefs" != xno], [
-    LDFLAGS="$LDFLAGS -Wl,-rpath=/home/kvgroup/cya/cubefs/cubefs-oppo/build/bin"
+    LDFLAGS="$LDFLAGS -Wl,-rpath=/home/kvgroup/cya/lib/cubefs-oppo"
     LDFLAGS="$LDFLAGS -Wl,-rpath=/home/kvgroup/cya/lib/cJSON-1.7.18/build"
 ])
 AM_CONDITIONAL([USE_CUBEFS_AIORI], [test x$with_cubefs = xyes])
