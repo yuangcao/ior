@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include "libcfs.h"
+#include "cJSON.h"
 
 #include "ior.h"
 #include "iordef.h"
@@ -32,7 +33,7 @@ static struct cubefs_options o = {
 };
 
 static option_help options [] = {
-      {0, "cubefs.conf", "Config file for the cubefs cluster", OPTION_OPTIONAL_ARGUMENT, 's', & o.conf},
+      {0, "cubefs.conf", "Config file path for the cubefs client", OPTION_OPTIONAL_ARGUMENT, 's', & o.conf},
       LAST_OPTION
 };
 
@@ -100,24 +101,100 @@ static option_help * CUBEFS_options(){
   return options;
 }
 
+char* read_file(const char *filename) {
+    FILE *file = NULL;
+    long length = 0;
+    char *content = NULL;
+    size_t read_chars = 0;
+
+    /* open in read binary mode */
+    file = fopen(filename, "rb");
+    if (file == NULL)
+    {
+        goto cleanup;
+    }
+
+    /* get the length */
+    if (fseek(file, 0, SEEK_END) != 0)
+    {
+        goto cleanup;
+    }
+    length = ftell(file);
+    if (length < 0)
+    {
+        goto cleanup;
+    }
+    if (fseek(file, 0, SEEK_SET) != 0)
+    {
+        goto cleanup;
+    }
+
+    /* allocate content buffer */
+    content = (char*)malloc((size_t)length + sizeof(""));
+    if (content == NULL)
+    {
+        goto cleanup;
+    }
+
+    /* read the file into memory */
+    read_chars = fread(content, sizeof(char), (size_t)length, file);
+    if ((long)read_chars != length)
+    {
+        free(content);
+        content = NULL;
+        goto cleanup;
+    }
+    content[read_chars] = '\0';
+
+
+cleanup:
+    if (file != NULL)
+    {
+        fclose(file);
+    }
+
+    return content;
+}
+
+static cJSON *parse_file(const char *filename)
+{
+    cJSON *parsed = NULL;
+    char *content = read_file(filename);
+
+    parsed = cJSON_Parse(content);
+
+    if (content != NULL)
+    {
+        free(content);
+    }
+
+    return parsed;
+}
+
 static void CUBEFS_Init()
 {
         printf("CUBEFS_Init\n");
         cubefs_client_id = cfs_new_client();
-        int statusVal = cfs_set_client(cubefs_client_id, "masterAddr", "192.168.1.103:16010,192.168.1.117:16010,192.168.1.141:16010");
-        if (statusVal != 0) { printf("Error 1\n"); CUBEFS_ERR("Unable to set masterAddr", statusVal); }
-        statusVal = cfs_set_client(cubefs_client_id, "volName", "cyasdktest");
-        if (statusVal != 0) { printf("Error 2\n"); CUBEFS_ERR("Unable to set volName", statusVal); }
-        statusVal = cfs_set_client(cubefs_client_id, "logLevel", "info");
-        if (statusVal != 0) { printf("Error 3\n"); CUBEFS_ERR("Unable to set logLevel", statusVal); }
-        statusVal = cfs_set_client(cubefs_client_id, "logDir", "/home/kvgroup/cya/cubefs-oppo/data-dist/client-cyasdktest/log");
-        if (statusVal != 0) { printf("Error 4\n"); CUBEFS_ERR("Unable to set logDir", statusVal); }
-        statusVal = cfs_set_client(cubefs_client_id, "enableAudit", "true");
-        if (statusVal != 0) { printf("Error 5\n"); CUBEFS_ERR("Unable to enableAudit", statusVal); }
-        statusVal = cfs_set_client(cubefs_client_id, "accessKey", "TvrE6nMCYxuvp9AQ");
-        if (statusVal != 0) { printf("Error 6\n"); CUBEFS_ERR("Unable to set accessKey", statusVal); }
-        statusVal = cfs_set_client(cubefs_client_id, "secretKey", "vnA4uz8MMQQW5gwBC3ES5zmfKeusHfTk");
-        if (statusVal != 0) { printf("Error 7\n"); CUBEFS_ERR("Unable to set secretKey", statusVal); }
+        
+        int statusVal;
+        cJSON *tree = NULL;
+        tree = parse_file(o.conf);
+        if (tree->type != cJSON_Object) { printf("[ERROR] file content is not a json object.\n"); }
+
+        cJSON *current_item = tree->child;
+        while (current_item) {
+                if (current_item->type != cJSON_String) { printf("[ERROR] json item's type must be string.\n"); }
+                printf("key = %s\n", current_item->string);
+                printf("value = %s\n", current_item->valuestring);
+                statusVal = cfs_set_client(cubefs_client_id, current_item->string, current_item->valuestring);
+                if (statusVal != 0) { printf("Error\n"); CUBEFS_ERR("Error in cfs_set_client", statusVal); }
+
+                current_item = current_item->next;
+        }
+        if (tree != NULL) {
+                cJSON_Delete(tree);
+        }
+
         statusVal = cfs_start_client(cubefs_client_id);
         if (statusVal != 0) { printf("Error 8\n"); CUBEFS_ERR("Unable to start client", statusVal); }
         
