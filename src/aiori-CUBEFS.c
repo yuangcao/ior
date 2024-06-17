@@ -173,7 +173,7 @@ static cJSON *parse_file(const char *filename)
 
 static void CUBEFS_Init()
 {
-        printf("CUBEFS_Init\n");
+        // printf("CUBEFS_Init\n");
         cubefs_client_id = cfs_new_client();
         
         int statusVal;
@@ -184,8 +184,7 @@ static void CUBEFS_Init()
         cJSON *current_item = tree->child;
         while (current_item) {
                 if (current_item->type != cJSON_String) { printf("[ERROR] json item's type must be string.\n"); }
-                printf("key = %s\n", current_item->string);
-                printf("value = %s\n", current_item->valuestring);
+
                 statusVal = cfs_set_client(cubefs_client_id, current_item->string, current_item->valuestring);
                 if (statusVal != 0) { printf("Error\n"); CUBEFS_ERR("Error in cfs_set_client", statusVal); }
 
@@ -206,20 +205,20 @@ static void CUBEFS_Init()
 
 static void CUBEFS_Final()
 {
-        printf("CUBEFS_Final\n");
+        // printf("CUBEFS_Final\n");
         cfs_close_client(cubefs_client_id);
         return;
 }
 
 static aiori_fd_t *CUBEFS_Create(char *path, int flags, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Create: %s\n", path);
+        // printf("CUBEFS_Create: %s\n", path);
         return CUBEFS_Open(path, flags | IOR_CREAT, options);
 }
 
 static aiori_fd_t *CUBEFS_Open(char *path, int flags, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Open: path = %s\n", path);
+        // printf("CUBEFS_Open: path = %s\n", path);
 
         int* fd;
         fd = (int *)malloc(sizeof(int));
@@ -264,19 +263,19 @@ static aiori_fd_t *CUBEFS_Open(char *path, int flags, aiori_mod_opt_t *options)
 static IOR_offset_t CUBEFS_Xfer(int access, aiori_fd_t *file, IOR_size_t *buffer,
                            IOR_offset_t length, IOR_offset_t offset, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Xfer\n");
+        // printf("CUBEFS_Xfer\n");
         return 0;
 }
 
 static void CUBEFS_Fsync(aiori_fd_t *file, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Fsync\n");
+        // printf("CUBEFS_Fsync\n");
         return;
 }
 
 static void CUBEFS_Close(aiori_fd_t *file, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Close\n");
+        // printf("CUBEFS_Close\n");
         int fd = *(int *) file;
         cfs_close(cubefs_client_id, fd);
         free(file);
@@ -301,7 +300,7 @@ static IOR_offset_t CUBEFS_GetFileSize(aiori_mod_opt_t *options, char *path)
 
 static int CUBEFS_StatFS(const char *path, ior_aiori_statfs_t *stat_buf, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_StatFS: %s\n", path);
+        // printf("CUBEFS_StatFS: %s\n", path);
         return 0;
 }
 
@@ -326,7 +325,7 @@ static int CUBEFS_Access(const char *path, int mode, aiori_mod_opt_t *options)
 
 static int CUBEFS_Stat(const char *path, struct stat *buf, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Stat: %s\n", path);
+        // printf("CUBEFS_Stat: %s\n", path);
         struct cfs_stat_info cfs_buf;
         int statusVal = cfs_getattr(cubefs_client_id, path, &cfs_buf);
         // int statusVal = cfs_getattr(cubefs_client_id, path, buf);
@@ -354,6 +353,6 @@ static int CUBEFS_Stat(const char *path, struct stat *buf, aiori_mod_opt_t *opti
 
 static void CUBEFS_Sync(aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Sync\n");
+        // printf("CUBEFS_Sync\n");
         return;
 }
