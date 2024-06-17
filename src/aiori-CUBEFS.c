@@ -284,7 +284,7 @@ static void CUBEFS_Close(aiori_fd_t *file, aiori_mod_opt_t *options)
 
 static void CUBEFS_Delete(char *path, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Delete: %s\n", path);
+        // printf("CUBEFS_Delete: %s\n", path);
         int statusVal = cfs_unlink(cubefs_client_id, path);
         if (statusVal != 0) { printf("Error in CUBEFS_Delete\n"); CUBEFS_ERR("Error occured when deleting a file", statusVal); }
         return;
@@ -306,13 +306,13 @@ static int CUBEFS_StatFS(const char *path, ior_aiori_statfs_t *stat_buf, aiori_m
 
 static int CUBEFS_MkDir(const char *path, mode_t mode, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_MkDir: %s\n", path);
+        // printf("CUBEFS_MkDir: %s\n", path);
         return cfs_mkdirs(cubefs_client_id, path, mode); // not sure about the return value. In mdtest.c, -1 is the error return value.
 }
 
 static int CUBEFS_RmDir(const char *path, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_RmDir: %s\n", path);
+        // printf("CUBEFS_RmDir: %s\n", path);
         return cfs_rmdir(cubefs_client_id, path); // not sure about the return value. In mdtest.c, -1 is the error return value.
 }
 
