@@ -216,7 +216,9 @@ static void CUBEFS_Delete(char *path, aiori_mod_opt_t *options)
 
 static IOR_offset_t CUBEFS_GetFileSize(aiori_mod_opt_t *options, char *path)
 {
-        printf("CUBEFS_GetFileSize: %s\n", path);
+        // printf("CUBEFS_GetFileSize: %s\n", path);
+        // This method is only called by ior.
+        // Not implentmented.
         return 0;
 }
 
@@ -240,14 +242,37 @@ static int CUBEFS_RmDir(const char *path, aiori_mod_opt_t *options)
 
 static int CUBEFS_Access(const char *path, int mode, aiori_mod_opt_t *options)
 {
-        printf("CUBEFS_Access: %s\n", path);
-        return 0;
+        // printf("CUBEFS_Access: %s\n", path);
+        struct cfs_stat_info buf;
+        return cfs_getattr(cubefs_client_id, path, &buf);
 }
 
 static int CUBEFS_Stat(const char *path, struct stat *buf, aiori_mod_opt_t *options)
 {
         printf("CUBEFS_Stat: %s\n", path);
-        return 0;
+        struct cfs_stat_info cfs_buf;
+        int statusVal = cfs_getattr(cubefs_client_id, path, &cfs_buf);
+        // int statusVal = cfs_getattr(cubefs_client_id, path, buf);
+        
+        // transfer cfs_stat_info to posix stat
+        buf->st_atime = cfs_buf.atime;
+        // buf->st_atimensec = cfs_buf.atime_nsec;
+        buf->st_blksize = cfs_buf.blk_size;
+        buf->st_blocks = cfs_buf.blocks;
+        buf->st_ctime = cfs_buf.ctime;
+        // buf->st_ctimensec = cfs_buf.ctime_nsec;
+        // buf->st_dev; // ??
+        buf->st_gid = cfs_buf.gid;
+        buf->st_ino = cfs_buf.ino;
+        buf->st_mode = cfs_buf.mode;
+        buf->st_mtime = cfs_buf.mtime;
+        // buf->st_mtimensec = cfs_buf.mtime_nsec;
+        buf->st_nlink = cfs_buf.nlink;
+        // buf->st_rdev; // ??
+        buf->st_size = cfs_buf.size;
+        buf->st_uid = cfs_buf.uid;
+        
+        return statusVal;
 }
 
 static void CUBEFS_Sync(aiori_mod_opt_t *options)
