@@ -84,6 +84,9 @@ ior_aiori_t *available_aiori[] = {
 #ifdef USE_CEPHFS_AIORI
         &cephfs_aiori,
 #endif
+#ifdef USE_CUBEFS_AIORI
+        &cubefs_aiori,
+#endif
 #ifdef USE_GFARM_AIORI
         &gfarm_aiori,
 #endif

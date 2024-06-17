@@ -334,6 +334,21 @@ AM_COND_IF([USE_CEPHFS_AIORI],[
         AC_DEFINE([USE_CEPHFS_AIORI], [], [Build CEPHFS backend AIORI])
 ])
 
+# CUBEFS support
+AC_ARG_WITH([cubefs],
+        [AS_HELP_STRING([--with-cubefs],
+           [support IO with libcubefs backend @<:@default=no@:>@])],
+        [],
+        [with_cubefs=no])
+AS_IF([test "x$with_cubefs" != xno], [
+    LDFLAGS="$LDFLAGS -Wl,-rpath=/home/kvgroup/cya/cubefs/cubefs-oppo/build/bin"
+    LDFLAGS="$LDFLAGS -Wl,-rpath=/home/kvgroup/cya/lib/cJSON-1.7.18/build"
+])
+AM_CONDITIONAL([USE_CUBEFS_AIORI], [test x$with_cubefs = xyes])
+AM_COND_IF([USE_CUBEFS_AIORI],[
+        AC_DEFINE([USE_CUBEFS_AIORI], [], [Build CUBEFS backend AIORI])
+])
+
 # DAOS-FS Backend (DFS)
 AC_ARG_WITH([daos],
     [AS_HELP_STRING([--with-daos],

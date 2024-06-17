@@ -99,6 +99,14 @@ extraSOURCES += aiori-CEPHFS.c
 extraLDADD += -lcephfs
 endif
 
+if USE_CUBEFS_AIORI
+extraSOURCES += aiori-CUBEFS.c
+extraCPPFLAGS += -I/home/kvgroup/cya/cubefs/cubefs-oppo/build/bin
+extraLDADD += -L/home/kvgroup/cya/cubefs/cubefs-oppo/build/bin -lcfs
+extraCPPFLAGS += -I/home/kvgroup/cya/lib/cJSON-1.7.18
+extraLDADD += -L/home/kvgroup/cya/lib/cJSON-1.7.18/build -lcjson
+endif
+
 
 if USE_DAOS_AIORI
 extraSOURCES += aiori-DFS.c
