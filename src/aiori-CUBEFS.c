@@ -185,7 +185,17 @@ static void CUBEFS_Init()
         while (current_item) {
                 if (current_item->type != cJSON_String) { printf("[ERROR] json item's type must be string.\n"); }
 
-                statusVal = cfs_set_client(cubefs_client_id, current_item->string, current_item->valuestring);
+                if (strcmp(current_item->string, "logDir") == 0) {
+                        char *dir_string = (char *) malloc(sizeof(char) * (strlen(current_item->valuestring) + 5)); // +4 has 1 char for \0, 1 char for '-', and 3 chars for the rank num.
+                        strcpy(dir_string, current_item->valuestring);
+                        char rank_str[5];
+                        sprintf(rank_str, "-%d", rank);
+                        strcat(dir_string, rank_str);
+                        statusVal = cfs_set_client(cubefs_client_id, current_item->string, dir_string);
+                        free(dir_string);
+                } else {
+                        statusVal = cfs_set_client(cubefs_client_id, current_item->string, current_item->valuestring);
+                }
                 if (statusVal != 0) { printf("Error\n"); CUBEFS_ERR("Error in cfs_set_client", statusVal); }
 
                 current_item = current_item->next;
@@ -307,28 +317,27 @@ static int CUBEFS_StatFS(const char *path, ior_aiori_statfs_t *stat_buf, aiori_m
 static int CUBEFS_MkDir(const char *path, mode_t mode, aiori_mod_opt_t *options)
 {
         printf("CUBEFS_MkDir: %s\n", path);
-        return cfs_mkdirs(cubefs_client_id, path, mode); // not sure about the return value. In mdtest.c, -1 is the error return value.
+        return cfs_mkdirs(cubefs_client_id, (char*) path, mode); // not sure about the return value. In mdtest.c, -1 is the error return value.
 }
 
 static int CUBEFS_RmDir(const char *path, aiori_mod_opt_t *options)
 {
         printf("CUBEFS_RmDir: %s\n", path);
-        return cfs_rmdir(cubefs_client_id, path); // not sure about the return value. In mdtest.c, -1 is the error return value.
+        return cfs_rmdir(cubefs_client_id, (char*) path); // not sure about the return value. In mdtest.c, -1 is the error return value.
 }
 
 static int CUBEFS_Access(const char *path, int mode, aiori_mod_opt_t *options)
 {
         // printf("CUBEFS_Access: %s\n", path);
         struct cfs_stat_info buf;
-        return cfs_getattr(cubefs_client_id, path, &buf);
+        return cfs_getattr(cubefs_client_id, (char*) path, &buf);
 }
 
 static int CUBEFS_Stat(const char *path, struct stat *buf, aiori_mod_opt_t *options)
 {
         // printf("CUBEFS_Stat: %s\n", path);
         struct cfs_stat_info cfs_buf;
-        int statusVal = cfs_getattr(cubefs_client_id, path, &cfs_buf);
-        // int statusVal = cfs_getattr(cubefs_client_id, path, buf);
+        int statusVal = cfs_getattr(cubefs_client_id, (char*) path, &cfs_buf);
         
         // transfer cfs_stat_info to posix stat
         buf->st_atime = cfs_buf.atime;
