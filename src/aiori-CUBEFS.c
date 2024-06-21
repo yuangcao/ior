@@ -310,6 +310,19 @@ static IOR_offset_t CUBEFS_GetFileSize(aiori_mod_opt_t *options, char *path)
 static int CUBEFS_StatFS(const char *path, ior_aiori_statfs_t *stat_buf, aiori_mod_opt_t *options)
 {
         // printf("CUBEFS_StatFS: %s\n", path);
+        struct cfs_statfs_info buf;
+        int ret = cfs_statfs(cubefs_client_id, (char*) path, &buf);
+        if (ret < 0) {
+                CUBEFS_ERR("cfs_statfs failed", ret);
+                return -1;
+        }
+
+        stat_buf->f_bsize = buf.bsize;
+        stat_buf->f_blocks = buf.blocks;
+        stat_buf->f_bfree = buf.bfree;
+        stat_buf->f_files = buf.files;
+        stat_buf->f_ffree = buf.ffree;
+
         return 0;
 }
 
