@@ -27,5 +27,25 @@ or on Read the Docs.
 * Docker scripts are also provided in `testing/docker/` to test various
   distributions at once.  
 
+#### Use mdtest cubefs backend
+
+```
+./src/mdtest -a=CUBEFS --cubefs.conf=/path/to/conf/file -F -C -n 10
+```
+
+conf file example:
+
+```
+{
+  "masterAddr": "192.168.1.103:16010,192.168.1.117:16010,192.168.1.141:16010",
+  "volName": "cyasdktest",
+  "logDir": "/home/kvgroup/cya/cubefs-oppo/data-dist/client-cyasdktest/log",
+  "logLevel": "debug",
+  "enableAudit": "true",
+  "accessKey": "TvrE6nMCYxuvp9AQ",
+  "secretKey": "vnA4uz8MMQQW5gwBC3ES5zmfKeusHfTk"
+}
+```
+
 [official IOR release]: https://github.com/hpc/ior/releases
 [official IOR/mdtest documentation]: http://ior.readthedocs.org/
