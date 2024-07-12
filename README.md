@@ -27,7 +27,7 @@ or on Read the Docs.
 * Docker scripts are also provided in `testing/docker/` to test various
   distributions at once.  
 
-#### Use mdtest cubefs backend
+## Use mdtest cubefs backend
 
 ```
 ./src/mdtest -a=CUBEFS --cubefs.conf=/path/to/conf/file -F -C -n 10
