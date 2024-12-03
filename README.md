@@ -27,7 +27,38 @@ or on Read the Docs.
 * Docker scripts are also provided in `testing/docker/` to test various
   distributions at once.  
 
-## Use mdtest cubefs backend
+## Use mdtest CubeFS backend
+
+### Install dependencies
+
+Two dependencies: `libcfs.so, libcjson.so`.
+
+`libcfs.so`: Run `make libsdk` in CubeFS.
+
+`libcjson.so`：
+
+```bash
+wget https://github.com/DaveGamble/cJSON/archive/refs/tags/v1.7.18.tar.gz
+tar zxvf v1.7.18.tar.gz
+mkdir build
+cd build
+cmake ..
+make
+```
+
+### Compile mdtest
+
+The path of the two dependencies are hard-coded in the code. You should change the paths containing `cya` to the paths where your own libraries are located.
+
+```
+git clone git@github.com:yuangcao/ior.git
+# change path to libs
+./bootstrap
+./configure --with-cubefs # To use the CubeFS backend, you should add the parameter --with-cubefs
+make
+```
+
+### Usage
 
 ```
 ./src/mdtest -a=CUBEFS --cubefs.conf=/path/to/conf/file -F -C -n 10
